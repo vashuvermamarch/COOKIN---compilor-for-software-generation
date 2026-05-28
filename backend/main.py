@@ -395,17 +395,12 @@ def insert_database_record(table_name: str, record: Dict[str, Any] = Body(...)):
     finally:
         conn.close()
 
-# Ensure public/frontend files exist before mounting, or mount lazily
-workspace_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-frontend_dist_dir = os.path.join(workspace_dir, "frontend", "dist")
-frontend_legacy_dir = os.path.join(workspace_dir, "frontend")
-
-if os.path.exists(frontend_dist_dir):
+# Mount static UI assets from the built distribution directory within the container
+frontend_dist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend_dist"))
+if os.path.isdir(frontend_dist_dir):
     app.mount("/", StaticFiles(directory=frontend_dist_dir, html=True), name="frontend")
-elif os.path.exists(frontend_legacy_dir):
-    app.mount("/", StaticFiles(directory=frontend_legacy_dir, html=True), name="frontend")
 else:
-    print(f"[Warning] Frontend directory not found. Mounting skipped.")
+    print("[Warning] Frontend distribution not found; static files not mounted.")
 
 if __name__ == "__main__":
     uvicorn.run("backend.main:app", host="127.0.0.1", port=8080, reload=True)
