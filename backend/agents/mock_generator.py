@@ -398,6 +398,38 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
                                 "props": {"api_endpoint": "/api/leads", "columns": ["id", "company", "status"]}
                             }
                         ]
+                    },
+                    {
+                        "name": "Deals Board",
+                        "route": "/deals",
+                        "components": [
+                            {
+                                "type": "sidebar",
+                                "id": "crm_side_deals",
+                                "title": "CRM Console",
+                                "props": {"items": [{"label": "Leads", "route": "/leads"}, {"label": "Deals", "route": "/deals"}]}
+                            },
+                            {
+                                "type": "form",
+                                "id": "add_deal_form",
+                                "title": "Create New Deal",
+                                "props": {
+                                    "api_endpoint": "/api/deals",
+                                    "method": "POST",
+                                    "fields": [
+                                        {"name": "title", "label": "Deal Title", "type": "text", "required": True},
+                                        {"name": "value", "label": "Value ($)", "type": "integer", "required": True},
+                                        {"name": "stage", "label": "Stage", "type": "text", "required": True}
+                                    ]
+                                }
+                            },
+                            {
+                                "type": "table",
+                                "id": "deals_table",
+                                "title": "Active Deals",
+                                "props": {"api_endpoint": "/api/deals", "columns": ["id", "title", "value", "stage"]}
+                            }
+                        ]
                     }
                 ]
             }
@@ -433,6 +465,37 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
                                 "id": "tasks_list",
                                 "title": "My Tasks",
                                 "props": {"api_endpoint": "/api/tasks", "columns": ["id", "title", "status", "priority", "project_id"]}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Projects",
+                        "route": "/projects",
+                        "components": [
+                            {
+                                "type": "navbar",
+                                "id": "task_nav_projects",
+                                "title": app_name,
+                                "props": {"links": [{"label": "Dashboard", "href": "/dashboard"}, {"label": "Projects", "href": "/projects"}]}
+                            },
+                            {
+                                "type": "form",
+                                "id": "new_project_form",
+                                "title": "Create a Project",
+                                "props": {
+                                    "api_endpoint": "/api/projects",
+                                    "method": "POST",
+                                    "fields": [
+                                        {"name": "title", "label": "Project Title", "type": "text", "required": True},
+                                        {"name": "owner_id", "label": "Owner ID", "type": "integer", "required": True}
+                                    ]
+                                }
+                            },
+                            {
+                                "type": "table",
+                                "id": "projects_list",
+                                "title": "All Projects",
+                                "props": {"api_endpoint": "/api/projects", "columns": ["id", "title", "owner_id"]}
                             }
                         ]
                     }
@@ -492,14 +555,15 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
             return {
                 "runtime": {
                     "routes": [
-                        {"path": "/leads", "page_name": "Leads Dashboard"}
+                        {"path": "/leads", "page_name": "Leads Dashboard"},
+                        {"path": "/deals", "page_name": "Deals Board"}
                     ],
                     "components": [
                         {
                             "type": "sidebar",
                             "id": "crm_side",
                             "title": "CRM Console",
-                            "props": {"items": [{"label": "Leads", "route": "/leads"}, {"label": "Deals", "route": "/deals"}]}
+                            "props": {"items": [{"label": "Leads", "route": "/leads"}, {"label": "Deals", "route": "/deals"}], "_page_route": "/leads"}
                         },
                         {
                             "type": "form",
@@ -511,26 +575,57 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
                                 "fields": [
                                     {"name": "company", "label": "Company Name", "type": "text", "required": True},
                                     {"name": "status", "label": "Lead Status", "type": "text", "required": True}
-                                ]
+                                ],
+                                "_page_route": "/leads"
                             }
                         },
                         {
                             "type": "table",
                             "id": "leads_table",
                             "title": "Active Leads",
-                            "props": {"api_endpoint": "/api/leads", "columns": ["id", "company", "status"]}
+                            "props": {"api_endpoint": "/api/leads", "columns": ["id", "company", "status"], "_page_route": "/leads"}
+                        },
+                        {
+                            "type": "sidebar",
+                            "id": "crm_side_deals",
+                            "title": "CRM Console",
+                            "props": {"items": [{"label": "Leads", "route": "/leads"}, {"label": "Deals", "route": "/deals"}], "_page_route": "/deals"}
+                        },
+                        {
+                            "type": "form",
+                            "id": "add_deal_form",
+                            "title": "Create New Deal",
+                            "props": {
+                                "api_endpoint": "/api/deals",
+                                "method": "POST",
+                                "fields": [
+                                    {"name": "title", "label": "Deal Title", "type": "text", "required": True},
+                                    {"name": "value", "label": "Value ($)", "type": "integer", "required": True},
+                                    {"name": "stage", "label": "Stage", "type": "text", "required": True}
+                                ],
+                                "_page_route": "/deals"
+                            }
+                        },
+                        {
+                            "type": "table",
+                            "id": "deals_table",
+                            "title": "Active Deals",
+                            "props": {"api_endpoint": "/api/deals", "columns": ["id", "title", "value", "stage"], "_page_route": "/deals"}
                         }
                     ],
                     "bindings": [
                         {"component_id": "leads_table", "api_path": "/api/leads", "method": "GET", "event": "onLoad", "state_key": "leads"},
-                        {"component_id": "add_lead_form", "api_path": "/api/leads", "method": "POST", "event": "onSubmit", "state_key": "leads"}
+                        {"component_id": "add_lead_form", "api_path": "/api/leads", "method": "POST", "event": "onSubmit", "state_key": "leads"},
+                        {"component_id": "deals_table", "api_path": "/api/deals", "method": "GET", "event": "onLoad", "state_key": "deals"},
+                        {"component_id": "add_deal_form", "api_path": "/api/deals", "method": "POST", "event": "onSubmit", "state_key": "deals"}
                     ],
                     "state": {
                         "leads": [
                             {"id": 1, "company": "Acme Corp", "status": "New Lead"},
                             {"id": 2, "company": "Stark Industries", "status": "Contacted"},
                             {"id": 3, "company": "Wayne Enterprises", "status": "Qualified"}
-                        ]
+                        ],
+                        "deals": []
                     }
                 }
             }
@@ -538,14 +633,15 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
             return {
                 "runtime": {
                     "routes": [
-                        {"path": "/dashboard", "page_name": "Dashboard"}
+                        {"path": "/dashboard", "page_name": "Dashboard"},
+                        {"path": "/projects", "page_name": "Projects"}
                     ],
                     "components": [
                         {
                             "type": "navbar",
                             "id": "task_nav",
                             "title": app_name,
-                            "props": {"links": [{"label": "Dashboard", "href": "/dashboard"}, {"label": "Projects", "href": "/projects"}]}
+                            "props": {"links": [{"label": "Dashboard", "href": "/dashboard"}, {"label": "Projects", "href": "/projects"}], "_page_route": "/dashboard"}
                         },
                         {
                             "type": "form",
@@ -558,25 +654,57 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
                                     {"name": "title", "label": "Task Title", "type": "text", "required": True},
                                     {"name": "project_id", "label": "Project ID", "type": "integer", "required": True},
                                     {"name": "priority", "label": "Priority (High/Med/Low)", "type": "text", "required": False}
-                                ]
+                                ],
+                                "_page_route": "/dashboard"
                             }
                         },
                         {
                             "type": "table",
                             "id": "tasks_list",
                             "title": "My Tasks",
-                            "props": {"api_endpoint": "/api/tasks", "columns": ["id", "title", "status", "priority", "project_id"]}
+                            "props": {"api_endpoint": "/api/tasks", "columns": ["id", "title", "status", "priority", "project_id"], "_page_route": "/dashboard"}
+                        },
+                        {
+                            "type": "navbar",
+                            "id": "task_nav_projects",
+                            "title": app_name,
+                            "props": {"links": [{"label": "Dashboard", "href": "/dashboard"}, {"label": "Projects", "href": "/projects"}], "_page_route": "/projects"}
+                        },
+                        {
+                            "type": "form",
+                            "id": "new_project_form",
+                            "title": "Create a Project",
+                            "props": {
+                                "api_endpoint": "/api/projects",
+                                "method": "POST",
+                                "fields": [
+                                    {"name": "title", "label": "Project Title", "type": "text", "required": True},
+                                    {"name": "owner_id", "label": "Owner ID", "type": "integer", "required": True}
+                                ],
+                                "_page_route": "/projects"
+                            }
+                        },
+                        {
+                            "type": "table",
+                            "id": "projects_list",
+                            "title": "All Projects",
+                            "props": {"api_endpoint": "/api/projects", "columns": ["id", "title", "owner_id"], "_page_route": "/projects"}
                         }
                     ],
                     "bindings": [
                         {"component_id": "tasks_list", "api_path": "/api/tasks", "method": "GET", "event": "onLoad", "state_key": "tasks"},
-                        {"component_id": "new_task_form", "api_path": "/api/tasks", "method": "POST", "event": "onSubmit", "state_key": "tasks"}
+                        {"component_id": "new_task_form", "api_path": "/api/tasks", "method": "POST", "event": "onSubmit", "state_key": "tasks"},
+                        {"component_id": "projects_list", "api_path": "/api/projects", "method": "GET", "event": "onLoad", "state_key": "projects"},
+                        {"component_id": "new_project_form", "api_path": "/api/projects", "method": "POST", "event": "onSubmit", "state_key": "projects"}
                     ],
                     "state": {
                         "tasks": [
                             {"id": 1, "title": "Setup repository structure", "status": "Done", "priority": "High", "project_id": 101},
                             {"id": 2, "title": "Write Pydantic models", "status": "In Progress", "priority": "High", "project_id": 101},
                             {"id": 3, "title": "Build visual mock interface", "status": "Todo", "priority": "Medium", "project_id": 101}
+                        ],
+                        "projects": [
+                            {"id": 101, "title": "Compiler System Core", "owner_id": 1}
                         ]
                     }
                 }

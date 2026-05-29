@@ -12,8 +12,13 @@ function App() {
   const [compiledConfig, setCompiledConfig] = useState(null);
   const [trace, setTrace] = useState(null);
   const [activeTab, setActiveTab] = useState('sandbox');
+  const [theme, setTheme] = useState('light');
   
-  // Settings initialization
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+  
+  // Settings and active config initialization
   useEffect(() => {
     fetch('/api/settings')
       .then(res => res.json())
@@ -22,6 +27,16 @@ function App() {
         setGroqApiKey(data.groq_api_key_configured ? 'CONFIGURED_IN_ENV' : '');
       })
       .catch(err => console.error('Failed to load settings:', err));
+
+    fetch('/api/compile')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.final_config) {
+          setTrace(data.trace);
+          setCompiledConfig(data.final_config);
+        }
+      })
+      .catch(err => console.error('Failed to load active compiled configuration:', err));
   }, []);
 
   const handleApplySettings = async () => {
@@ -125,16 +140,22 @@ function App() {
           </div>
           
           <div className="header-right">
-            <button className="header-action-btn search-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <span>Search thread</span>
-            </button>
-            <button className="header-action-btn invite-btn">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-              <span>Invite</span>
-            </button>
-            <button className="header-action-btn new-thread-btn" onClick={() => { setCompiledConfig(null); setTrace(null); setPrompt(''); }}>
-              <span>+ New Thread</span>
+            <button 
+              className="header-action-btn theme-toggle-btn" 
+              onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: '600' }}
+            >
+              {theme === 'light' ? (
+                <>
+                  <span style={{ fontSize: '1rem' }}>🌙</span>
+                  <span>Dark Mode</span>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: '1rem' }}>☀️</span>
+                  <span>Light Mode</span>
+                </>
+              )}
             </button>
           </div>
         </header>

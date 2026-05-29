@@ -84,17 +84,29 @@ function Sandbox({ compiledConfig, isCompiling, setCompiledConfig }) {
   const navbar = runtime.components.find(c => c.type === 'navbar');
   const sidebar = runtime.components.find(c => c.type === 'sidebar');
   
-  const pageRoute = runtime.routes.find(r => r.path === activeRoute);
+  const normalizeRoute = (r) => {
+    if (!r) return '';
+    return r.toLowerCase().trim().replace(/\/$/, '');
+  };
+
+  const pageRoute = runtime.routes.find(r => normalizeRoute(r.path) === normalizeRoute(activeRoute));
   const pageTitle = pageRoute ? pageRoute.page_name : 'Workspace Dashboard';
   
   const activeComponents = runtime.components.filter(c => {
-    return c.props && c.props._page_route === activeRoute && c.type !== 'navbar' && c.type !== 'sidebar';
+    return c.props && normalizeRoute(c.props._page_route) === normalizeRoute(activeRoute) && c.type !== 'navbar' && c.type !== 'sidebar';
   });
 
   const extractStateKey = (apiPath) => {
     const parts = apiPath.split('/').filter(p => p && p !== 'api');
     if (parts.length > 0) {
-      return parts[0].replace(/\{.*?\}/, '').trim();
+      const rawKey = parts[0].replace(/\{.*?\}/, '').trim();
+      if (runtime && runtime.state) {
+        const match = Object.keys(runtime.state).find(
+          k => k.toLowerCase() === rawKey.toLowerCase()
+        );
+        if (match) return match;
+      }
+      return rawKey;
     }
     return 'app_state';
   };
@@ -158,7 +170,7 @@ function Sandbox({ compiledConfig, isCompiling, setCompiledConfig }) {
                 {(navbar.props.links || []).map((link, i) => (
                   <a 
                     key={i} 
-                    className={`compiled-nav-link ${activeRoute === link.href ? 'active' : ''}`}
+                    className={`compiled-nav-link ${normalizeRoute(activeRoute) === normalizeRoute(link.href) ? 'active' : ''}`}
                     onClick={() => setActiveRoute(link.href)}
                   >
                     {link.label}
@@ -175,7 +187,7 @@ function Sandbox({ compiledConfig, isCompiling, setCompiledConfig }) {
               {(sidebar.props.items || []).map((item, i) => (
                 <div 
                   key={i} 
-                  className={`compiled-sidebar-item ${activeRoute === item.route ? 'active' : ''}`}
+                  className={`compiled-sidebar-item ${normalizeRoute(activeRoute) === normalizeRoute(item.route) ? 'active' : ''}`}
                   onClick={() => setActiveRoute(item.route)}
                 >
                   {item.label}

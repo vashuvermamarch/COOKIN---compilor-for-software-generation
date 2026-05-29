@@ -27,6 +27,16 @@ from backend.validators.schema_validator import (
 from backend.validators.consistency_validator import run_consistency_checks
 from backend.repair.repair_engine import repair_config
 from backend.runtime.runtime_builder import build_runtime_config
+import json
+
+CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "last_compiled_config.json")
+active_compiled_config = None
+if os.path.exists(CONFIG_FILE_PATH):
+    try:
+        with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+            active_compiled_config = json.load(f)
+    except Exception as e:
+        print(f"[Warning] Failed to load last compiled config: {e}")
 
 app = FastAPI(
     title="AI Software Compiler API",
@@ -237,7 +247,8 @@ def compile_app(req: CompileRequest):
     
     app_name = intent_data.get("app_name", "AI Compiled Application")
     
-    return {
+    global active_compiled_config
+    active_compiled_config = {
         "app_name": app_name,
         "compilation_success": len(consistency_errors) == 0,
         "trace": trace,
@@ -247,6 +258,23 @@ def compile_app(req: CompileRequest):
             **runtime_data
         }
     }
+    
+    try:
+        with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(active_compiled_config, f, indent=2)
+    except Exception as e:
+        print(f"[Warning] Failed to save active config: {e}")
+        
+    return active_compiled_config
+
+@app.get("/api/compile")
+def get_last_compile():
+    """
+    Returns the last successfully compiled application layout/configuration.
+    """
+    if active_compiled_config is None:
+        return {}
+    return active_compiled_config
 
 @app.post("/api/validate")
 def validate_configuration(full_config: Dict[str, Any] = Body(...)):
