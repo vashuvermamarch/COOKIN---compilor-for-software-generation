@@ -239,6 +239,9 @@ def compile_app(req: CompileRequest):
     # --- STAGE 8: Runtime Builder ---
     runtime_data = build_runtime_config(validated_config, prompt)
     
+    # Attach runtime data to the final config so the frontend can receive it!
+    validated_config["runtime"] = runtime_data.get("runtime", {})
+    
     trace["stage_8_runtime"] = {
         "output": runtime_data,
         "valid": True,
@@ -326,6 +329,14 @@ def get_database_records(table_name: str):
     import sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "compiled_app.db")
     if not os.path.exists(db_path):
+        if active_compiled_config and "final_config" in active_compiled_config:
+            try:
+                from backend.runtime.runtime_builder import generate_physical_database
+                generate_physical_database(active_compiled_config["final_config"])
+            except Exception as e:
+                print(f"[Warning] Failed to auto-generate missing database on GET: {e}")
+                
+    if not os.path.exists(db_path):
         return []
         
     conn = sqlite3.connect(db_path)
@@ -350,6 +361,14 @@ def insert_database_record(table_name: str, record: Dict[str, Any] = Body(...)):
     """
     import sqlite3
     db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "compiled_app.db")
+    if not os.path.exists(db_path):
+        if active_compiled_config and "final_config" in active_compiled_config:
+            try:
+                from backend.runtime.runtime_builder import generate_physical_database
+                generate_physical_database(active_compiled_config["final_config"])
+            except Exception as e:
+                print(f"[Warning] Failed to auto-generate missing database on POST: {e}")
+                
     if not os.path.exists(db_path):
         raise HTTPException(status_code=400, detail="Database file compiled_app.db not found.")
         

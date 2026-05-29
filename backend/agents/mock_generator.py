@@ -7,6 +7,10 @@ def extract_keywords(user_input: str) -> str:
         return "ecommerce"
     if any(k in input_lower for k in ["crm", "lead", "sales", "deal", "pipeline", "customer"]):
         return "crm"
+    if any(k in input_lower for k in ["lms", "course", "education", "student", "learning"]):
+        return "lms"
+    if "calculator" in input_lower or "math" in input_lower:
+        return "calculator"
     # Default to task manager
     return "taskmanager"
 
@@ -17,7 +21,7 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
     app_name_match = re.search(r'(?:create|build|make)\s+(?:a|an)?\s*([\w\s\-]+?)(?:\s+app|\s+website|\s+system|\.|$)', user_input, re.IGNORECASE)
     app_name = app_name_match.group(1).strip().title() if app_name_match else "Custom App Builder"
     if not app_name:
-        app_name = "Task Tracker Pro" if app_type == "taskmanager" else ("SaaS CRM Suite" if app_type == "crm" else "E-Shop Digital")
+        app_name = "Task Tracker Pro" if app_type == "taskmanager" else ("SaaS CRM Suite" if app_type == "crm" else ("LMS Portal" if app_type == "lms" else ("Smart Calculator" if app_type == "calculator" else "E-Shop Digital")))
 
     if stage == 1: # Intent Extraction
         if app_type == "ecommerce":
@@ -551,81 +555,236 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
                     }
                 }
             }
+        elif app_type == "calculator":
+            calc_html = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f8fafc; }
+  .calc-container { width: 320px; background: #ffffff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+  .display { width: 100%; height: 80px; background: #f1f5f9; border-radius: 12px; margin-bottom: 20px; text-align: right; padding: 20px; font-size: 2.5rem; font-weight: 600; color: #1e293b; box-sizing: border-box; overflow: hidden; border: none; }
+  .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  button { padding: 15px; font-size: 1.25rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #334155; }
+  button:hover { background: #cbd5e1; }
+  .op { background: #e0e7ff; color: #4f46e5; }
+  .op:hover { background: #c7d2fe; }
+  .eq { background: #a855f7; color: white; grid-column: span 2; }
+  .eq:hover { background: #9333ea; }
+  .clear { background: #fee2e2; color: #ef4444; }
+  .clear:hover { background: #fecaca; }
+</style>
+</head>
+<body>
+<div class="calc-container">
+  <input type="text" class="display" id="display" disabled value="0" />
+  <div class="buttons">
+    <button class="clear" onclick="clearDisplay()">C</button>
+    <button onclick="append('(')">(</button>
+    <button onclick="append(')')">)</button>
+    <button class="op" onclick="append('/')">÷</button>
+    <button onclick="append('7')">7</button>
+    <button onclick="append('8')">8</button>
+    <button onclick="append('9')">9</button>
+    <button class="op" onclick="append('*')">×</button>
+    <button onclick="append('4')">4</button>
+    <button onclick="append('5')">5</button>
+    <button onclick="append('6')">6</button>
+    <button class="op" onclick="append('-')">−</button>
+    <button onclick="append('1')">1</button>
+    <button onclick="append('2')">2</button>
+    <button onclick="append('3')">3</button>
+    <button class="op" onclick="append('+')">+</button>
+    <button onclick="append('0')">0</button>
+    <button onclick="append('.')">.</button>
+    <button class="eq" onclick="calculate()">=</button>
+  </div>
+</div>
+<script>
+  const display = document.getElementById('display');
+  function append(char) {
+    if(display.value === '0' || display.value === 'Error') display.value = char;
+    else display.value += char;
+  }
+  function clearDisplay() {
+    display.value = '0';
+  }
+  function calculate() {
+    try {
+      display.value = eval(display.value) || '0';
+    } catch(e) {
+      display.value = 'Error';
+    }
+  }
+</script>
+</body>
+</html>
+"""
+            return {
+                "runtime": {
+                    "routes": [{"path": "/calculator", "page_name": "Calculator"}],
+                    "components": [
+                        {
+                            "type": "html_widget",
+                            "id": "smart_calculator",
+                            "title": "Smart Calculator Widget",
+                            "props": {"html": calc_html, "_page_route": "/calculator"}
+                        }
+                    ],
+                    "bindings": [],
+                    "state": {}
+                }
+            }
+        elif app_type == "lms":
+            return {
+                "runtime": {
+                    "routes": [
+                        {"path": "/dashboard", "page_name": "LMS DASHBOARD"}
+                    ],
+                    "components": [
+                        {
+                            "type": "sidebar",
+                            "id": "lms_side",
+                            "title": "LMS DASHBOARD",
+                            "props": {"items": [{"label": "My Courses", "route": "/dashboard"}], "_page_route": "/dashboard"}
+                        },
+                        {
+                            "type": "metric",
+                            "id": "lms_metric",
+                            "title": "Total Courses",
+                            "props": {"label": "Total Courses", "value": "12", "_page_route": "/dashboard"}
+                        },
+                        {
+                            "type": "header",
+                            "id": "my_courses_header",
+                            "title": "My Courses",
+                            "props": {"label": "My Courses", "_page_route": "/dashboard"}
+                        },
+                        {
+                            "type": "list",
+                            "id": "courses_list",
+                            "title": "Course List",
+                            "props": {
+                                "items": [
+                                    "Python Basics",
+                                    "FastAPI Masterclass",
+                                    "Data Structures",
+                                    "System Design Algorithms"
+                                ],
+                                "_page_route": "/dashboard"
+                            }
+                        },
+                        {
+                            "type": "button",
+                            "id": "view_course_btn",
+                            "title": "View Course",
+                            "props": {"label": "View Course", "_page_route": "/dashboard"}
+                        }
+                    ],
+                    "bindings": [],
+                    "state": {}
+                }
+            }
         elif app_type == "crm":
             return {
                 "runtime": {
                     "routes": [
-                        {"path": "/leads", "page_name": "Leads Dashboard"},
-                        {"path": "/deals", "page_name": "Deals Board"}
+                        {"path": "/dashboard", "page_name": "Dashboard"},
+                        {"path": "/contacts", "page_name": "Contacts"},
+                        {"path": "/analytics", "page_name": "Analytics"}
                     ],
                     "components": [
                         {
                             "type": "sidebar",
                             "id": "crm_side",
-                            "title": "CRM Console",
-                            "props": {"items": [{"label": "Leads", "route": "/leads"}, {"label": "Deals", "route": "/deals"}], "_page_route": "/leads"}
+                            "title": "CRM APPLICATION",
+                            "props": {"items": [{"label": "Dashboard", "route": "/dashboard"}, {"label": "Contacts", "route": "/contacts"}, {"label": "Analytics", "route": "/analytics"}], "_page_route": "/dashboard"}
                         },
                         {
-                            "type": "form",
-                            "id": "add_lead_form",
-                            "title": "Capture New Lead",
-                            "props": {
-                                "api_endpoint": "/api/leads",
-                                "method": "POST",
-                                "fields": [
-                                    {"name": "company", "label": "Company Name", "type": "text", "required": True},
-                                    {"name": "status", "label": "Lead Status", "type": "text", "required": True}
-                                ],
-                                "_page_route": "/leads"
-                            }
+                            "type": "header",
+                            "id": "dash_header",
+                            "title": "Dashboard",
+                            "props": {"label": "Overview Dashboard", "_page_route": "/dashboard"}
                         },
                         {
-                            "type": "table",
-                            "id": "leads_table",
-                            "title": "Active Leads",
-                            "props": {"api_endpoint": "/api/leads", "columns": ["id", "company", "status"], "_page_route": "/leads"}
+                            "type": "metric",
+                            "id": "metric_1",
+                            "title": "Total Contacts",
+                            "props": {"label": "Total Contacts", "value": "150", "_page_route": "/dashboard"}
+                        },
+                        {
+                            "type": "metric",
+                            "id": "metric_2",
+                            "title": "Active Users",
+                            "props": {"label": "Active Users", "value": "12", "_page_route": "/dashboard"}
+                        },
+                        {
+                            "type": "button",
+                            "id": "add_contact_btn",
+                            "title": "Add Contact",
+                            "props": {"label": "Add Contact", "_page_route": "/dashboard"}
                         },
                         {
                             "type": "sidebar",
-                            "id": "crm_side_deals",
-                            "title": "CRM Console",
-                            "props": {"items": [{"label": "Leads", "route": "/leads"}, {"label": "Deals", "route": "/deals"}], "_page_route": "/deals"}
+                            "id": "crm_side_contacts",
+                            "title": "CRM APPLICATION",
+                            "props": {"items": [{"label": "Dashboard", "route": "/dashboard"}, {"label": "Contacts", "route": "/contacts"}, {"label": "Analytics", "route": "/analytics"}], "_page_route": "/contacts"}
                         },
                         {
-                            "type": "form",
-                            "id": "add_deal_form",
-                            "title": "Create New Deal",
+                            "type": "header",
+                            "id": "contacts_header",
+                            "title": "Contacts",
+                            "props": {"label": "Contact Directory", "_page_route": "/contacts"}
+                        },
+                        {
+                            "type": "list",
+                            "id": "contacts_list",
+                            "title": "Contacts List",
                             "props": {
-                                "api_endpoint": "/api/deals",
-                                "method": "POST",
-                                "fields": [
-                                    {"name": "title", "label": "Deal Title", "type": "text", "required": True},
-                                    {"name": "value", "label": "Value ($)", "type": "integer", "required": True},
-                                    {"name": "stage", "label": "Stage", "type": "text", "required": True}
+                                "items": [
+                                    "John Doe - john@gmail.com (Active)",
+                                    "Jane Smith - jane@gmail.com (Pending)",
+                                    "Michael Scott - mscott@dundermifflin.com (Closed)",
+                                    "Pam Beesly - pam@dundermifflin.com (Active)"
                                 ],
-                                "_page_route": "/deals"
+                                "_page_route": "/contacts"
                             }
                         },
                         {
-                            "type": "table",
-                            "id": "deals_table",
-                            "title": "Active Deals",
-                            "props": {"api_endpoint": "/api/deals", "columns": ["id", "title", "value", "stage"], "_page_route": "/deals"}
+                            "type": "form",
+                            "id": "add_contact_form",
+                            "title": "New Contact",
+                            "props": {
+                                "api_endpoint": "/api/contacts",
+                                "method": "POST",
+                                "fields": [
+                                    {"name": "name", "label": "Full Name", "type": "text", "required": True},
+                                    {"name": "email", "label": "Email Address", "type": "email_input", "required": True}
+                                ],
+                                "_page_route": "/contacts"
+                            }
+                        },
+                        {
+                            "type": "sidebar",
+                            "id": "crm_side_analytics",
+                            "title": "CRM APPLICATION",
+                            "props": {"items": [{"label": "Dashboard", "route": "/dashboard"}, {"label": "Contacts", "route": "/contacts"}, {"label": "Analytics", "route": "/analytics"}], "_page_route": "/analytics"}
+                        },
+                        {
+                            "type": "chart",
+                            "id": "analytics_chart",
+                            "title": "Sales Analytics Overview",
+                            "props": {"_page_route": "/analytics"}
                         }
                     ],
                     "bindings": [
-                        {"component_id": "leads_table", "api_path": "/api/leads", "method": "GET", "event": "onLoad", "state_key": "leads"},
-                        {"component_id": "add_lead_form", "api_path": "/api/leads", "method": "POST", "event": "onSubmit", "state_key": "leads"},
-                        {"component_id": "deals_table", "api_path": "/api/deals", "method": "GET", "event": "onLoad", "state_key": "deals"},
-                        {"component_id": "add_deal_form", "api_path": "/api/deals", "method": "POST", "event": "onSubmit", "state_key": "deals"}
+                        {"component_id": "add_contact_form", "api_path": "/api/contacts", "method": "POST", "event": "onSubmit", "state_key": "contacts"}
                     ],
                     "state": {
-                        "leads": [
-                            {"id": 1, "company": "Acme Corp", "status": "New Lead"},
-                            {"id": 2, "company": "Stark Industries", "status": "Contacted"},
-                            {"id": 3, "company": "Wayne Enterprises", "status": "Qualified"}
-                        ],
-                        "deals": []
+                        "contacts": [
+                            {"id": 1, "name": "John Doe", "email": "john@gmail.com"},
+                            {"id": 2, "name": "Jane Smith", "email": "jane@gmail.com"}
+                        ]
                     }
                 }
             }
@@ -633,78 +792,57 @@ def generate_mock_stage(stage: int, user_input: str, previous_stages_data: Dict[
             return {
                 "runtime": {
                     "routes": [
-                        {"path": "/dashboard", "page_name": "Dashboard"},
-                        {"path": "/projects", "page_name": "Projects"}
+                        {"path": "/tasks", "page_name": "Task Manager"}
                     ],
                     "components": [
                         {
-                            "type": "navbar",
-                            "id": "task_nav",
-                            "title": app_name,
-                            "props": {"links": [{"label": "Dashboard", "href": "/dashboard"}, {"label": "Projects", "href": "/projects"}], "_page_route": "/dashboard"}
+                            "type": "sidebar",
+                            "id": "task_side",
+                            "title": "TASK MANAGER",
+                            "props": {"items": [{"label": "My Tasks", "route": "/tasks"}], "_page_route": "/tasks"}
+                        },
+                        {
+                            "type": "button",
+                            "id": "new_task_btn",
+                            "title": "New Task",
+                            "props": {"label": "+ New Task", "_page_route": "/tasks"}
+                        },
+                        {
+                            "type": "list",
+                            "id": "task_list_component",
+                            "title": "Task List",
+                            "props": {
+                                "items": [
+                                    "✓ Learn FastAPI",
+                                    "✓ Build AI Compiler",
+                                    "□ Submit Assignment",
+                                    "□ Fix Docker Build",
+                                    "✓ Send Email to Mentor"
+                                ],
+                                "_page_route": "/tasks"
+                            }
                         },
                         {
                             "type": "form",
                             "id": "new_task_form",
-                            "title": "Create a Task",
+                            "title": "Add Task",
                             "props": {
                                 "api_endpoint": "/api/tasks",
                                 "method": "POST",
                                 "fields": [
-                                    {"name": "title", "label": "Task Title", "type": "text", "required": True},
-                                    {"name": "project_id", "label": "Project ID", "type": "integer", "required": True},
-                                    {"name": "priority", "label": "Priority (High/Med/Low)", "type": "text", "required": False}
+                                    {"name": "title", "label": "Task Description", "type": "text", "required": True}
                                 ],
-                                "_page_route": "/dashboard"
+                                "_page_route": "/tasks"
                             }
-                        },
-                        {
-                            "type": "table",
-                            "id": "tasks_list",
-                            "title": "My Tasks",
-                            "props": {"api_endpoint": "/api/tasks", "columns": ["id", "title", "status", "priority", "project_id"], "_page_route": "/dashboard"}
-                        },
-                        {
-                            "type": "navbar",
-                            "id": "task_nav_projects",
-                            "title": app_name,
-                            "props": {"links": [{"label": "Dashboard", "href": "/dashboard"}, {"label": "Projects", "href": "/projects"}], "_page_route": "/projects"}
-                        },
-                        {
-                            "type": "form",
-                            "id": "new_project_form",
-                            "title": "Create a Project",
-                            "props": {
-                                "api_endpoint": "/api/projects",
-                                "method": "POST",
-                                "fields": [
-                                    {"name": "title", "label": "Project Title", "type": "text", "required": True},
-                                    {"name": "owner_id", "label": "Owner ID", "type": "integer", "required": True}
-                                ],
-                                "_page_route": "/projects"
-                            }
-                        },
-                        {
-                            "type": "table",
-                            "id": "projects_list",
-                            "title": "All Projects",
-                            "props": {"api_endpoint": "/api/projects", "columns": ["id", "title", "owner_id"], "_page_route": "/projects"}
                         }
                     ],
                     "bindings": [
-                        {"component_id": "tasks_list", "api_path": "/api/tasks", "method": "GET", "event": "onLoad", "state_key": "tasks"},
-                        {"component_id": "new_task_form", "api_path": "/api/tasks", "method": "POST", "event": "onSubmit", "state_key": "tasks"},
-                        {"component_id": "projects_list", "api_path": "/api/projects", "method": "GET", "event": "onLoad", "state_key": "projects"},
-                        {"component_id": "new_project_form", "api_path": "/api/projects", "method": "POST", "event": "onSubmit", "state_key": "projects"}
+                        {"component_id": "new_task_form", "api_path": "/api/tasks", "method": "POST", "event": "onSubmit", "state_key": "tasks"}
                     ],
                     "state": {
                         "tasks": [
-                            {"id": 1, "title": "Setup repository structure", "status": "Done", "priority": "High", "project_id": 101},
-                            {"id": 2, "title": "Write Pydantic models", "status": "In Progress", "priority": "High", "project_id": 101},
-                            {"id": 3, "title": "Build visual mock interface", "status": "Todo", "priority": "Medium", "project_id": 101}
-                        ],
-                        "projects": [
-                            {"id": 101, "title": "Compiler System Core", "owner_id": 1}
+                            {"id": 1, "title": "Learn FastAPI", "status": "Completed"},
+                            {"id": 2, "title": "Submit Assignment", "status": "Pending"}
                         ]
                     }
                 }

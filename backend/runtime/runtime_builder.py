@@ -31,15 +31,16 @@ def build_runtime_config(validated_config: Dict[str, Any], user_input: str) -> D
     # 2. Extract Routes and Component Layouts
     pages_list = ui_schema.get("pages", []) or []
     for page in pages_list:
-        page_name = page.get("name")
-        page_route = page.get("route")
+        page_name = page.get("name") or page.get("page_name") or "Dashboard"
+        page_route = page.get("route") or page.get("path") or f"/{page_name.lower().replace(' ', '-')}"
         
         runtime_config["routes"].append({
             "path": page_route,
             "page_name": page_name
         })
         
-        for comp in page.get("components", []):
+        comps = page.get("components") or page.get("elements") or page.get("layout") or []
+        for comp in comps:
             comp_copy = copy.deepcopy(comp)
             # Tag components with their originating route
             comp_copy.setdefault("props", {})["_page_route"] = page_route

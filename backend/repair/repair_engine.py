@@ -39,6 +39,30 @@ def run_heuristic_repair(broken_config: Dict[str, Any], errors: List[str]) -> Di
                 repaired["api"] = api
             apis_list = api.setdefault("apis", [])
             
+            # Determine valid roles dynamically from intent and system design
+            valid_roles = []
+            intent = repaired.get("intent", {}) or {}
+            if isinstance(intent, dict):
+                roles_list = intent.get("roles", []) or []
+                for r in roles_list:
+                    if isinstance(r, str):
+                        valid_roles.append(r)
+                    elif isinstance(r, dict):
+                        valid_roles.append(r.get("name") or r.get("role") or str(r))
+            
+            system_design = repaired.get("system_design", {}) or {}
+            if isinstance(system_design, dict):
+                auth_design = system_design.get("auth_design", {}) or {}
+                if isinstance(auth_design, dict):
+                    roles_list = auth_design.get("roles", []) or []
+                    for r in roles_list:
+                        role_name = r if isinstance(r, str) else (r.get("name") or r.get("role") or str(r))
+                        if role_name not in valid_roles:
+                            valid_roles.append(role_name)
+            
+            if not valid_roles:
+                valid_roles = ["Admin", "Customer", "Member"]
+            
             # Find the missing API route: Table / Form submits to 'METHOD ROUTE'
             parts = err.split("non-existent API endpoint '")
             if len(parts) > 1:
@@ -54,7 +78,7 @@ def run_heuristic_repair(broken_config: Dict[str, Any], errors: List[str]) -> Di
                             "request_schema": {"type": "object", "properties": {}},
                             "response_schema": {"type": "object", "properties": {}},
                             "auth_required": True,
-                            "roles_allowed": ["Admin", "Customer", "Member"]
+                            "roles_allowed": valid_roles
                         })
                         
         # UI Form to DB Column mismatches

@@ -30,7 +30,6 @@ function Timeline({ trace, isCompiling }) {
     
     const stepData = trace[key];
     if (stepData.valid === false) return 'error';
-    if (stepData.repairs && stepData.repairs.length > 0) return 'repairing';
     return 'completed';
   };
 
