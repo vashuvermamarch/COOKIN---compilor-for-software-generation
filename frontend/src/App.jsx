@@ -34,16 +34,16 @@ function App() {
       })
       .catch(err => console.error('Failed to load settings:', err));
 
-    fetch('/api/compile')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.final_config) {
-          setTrace(data.trace);
-          setCompiledConfig(data.final_config);
-        }
-      })
-      .catch(err => console.error('Failed to load active compiled configuration:', err));
+    // Removed auto-load of last compile to ensure home page is shown on refresh
+    // as per user request.
   }, []);
+
+  const goHome = () => {
+    setView('compiler');
+    setCompiledConfig(null);
+    setTrace(null);
+    setPrompt('');
+  };
 
   const handleApplySettings = async () => {
     const btn = document.getElementById('save-settings-btn');
@@ -196,7 +196,7 @@ function App() {
         {/* Top Header Bar */}
         <header className="app-header">
           <div className="header-left">
-            <div className="logo-container" style={{ display: 'flex', alignItems: 'center', marginRight: '2.5rem' }}>
+            <div className="logo-container" onClick={goHome} style={{ display: 'flex', alignItems: 'center', marginRight: '2.5rem', cursor: 'pointer' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}>
                 <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#1e293b"/>
                 <path d="M12 6V8C9.79 8 8 9.79 8 12H6C6 8.69 8.69 6 12 6Z" fill="#a855f7"/>

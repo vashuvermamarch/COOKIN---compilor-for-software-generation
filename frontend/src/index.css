@@ -1521,3 +1521,56 @@ body {
   color: var(--text-primary) !important;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 900px) {
+  .app-header {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .header-left {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .cockpit-view-container {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  .cockpit-left-panel, .cockpit-right-panel {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  
+  .cockpit-left-panel {
+    padding-right: 0;
+  }
+  
+  .tab-triggers {
+    overflow-x: auto;
+    white-space: nowrap;
+    justify-content: flex-start;
+  }
+  
+  .tab-trigger {
+    flex: 0 0 auto;
+  }
+  
+  .landing-prompt-container h2 {
+    font-size: 1.5rem;
+  }
+  
+  .compile-overlay > div {
+    width: 90vw !important;
+    padding: 2rem 1.5rem !important;
+  }
+}
